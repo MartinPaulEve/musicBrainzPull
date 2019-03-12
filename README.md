@@ -1,10 +1,10 @@
-#musicBrainzPull
+# musicBrainzPull
 This application can generate a list of releases using MusicBrainz data. An example of its output can be found at https://eve.gd/music/ .
 
-##Installation
+## Installation
 First, clone the repo to your local machine. Then install the requirements into a virtual environment using pip -r requirements.txt.
 
-##Usage
+## Usage
 ```
 Usage:
   listMusic.py <id_file> <template_file> <output_file> [--debug] [--refresh]
