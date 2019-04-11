@@ -176,11 +176,8 @@ def generate_html(id_list):
 
 
 def fetch_cover(release_id, refresh=False):
-
-    if refresh:
+    if not os.path.isfile(release_id[0]) or refresh:
         logger.debug("Hard refreshing cover art for {0}".format(release_id[0]))
-
-    if not os.path.isfile(release_id[0]) and not refresh:
         try:
             data = musicbrainzngs.get_image_front(release_id[0])
         except musicbrainzngs.WebServiceError as exc:
@@ -203,10 +200,8 @@ def fetch_cover(release_id, refresh=False):
 
 
 def fetch_release(release_id, refresh=False):
-    if refresh:
+    if not os.path.isfile("{0}.data".format(release_id[0])) or refresh:
         logger.debug("Hard refreshing data for {0}".format(release_id[0]))
-
-    if not os.path.isfile("{0}.data".format(release_id[0])) and not refresh:
         try:
             release = musicbrainzngs.get_release_by_id(release_id[0], includes=["artists", "labels"])['release']
         except musicbrainzngs.WebServiceError as exc:
