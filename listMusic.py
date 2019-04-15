@@ -2,6 +2,7 @@
 
 Usage:
   listMusic.py <id_file> <template_file> <output_file> [--debug] [--refresh]
+  listMusic.py cv <id_file> [--debug] [--refresh]
   listMusic.py (-h | --help)
   listMusic.py --version
 
@@ -31,7 +32,7 @@ from docopt import docopt
 import logging
 import pygogo as gogo
 
-app = "Music Release Generator 1.0"
+app = "Music Release Generator 1.1"
 
 log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 formatter = logging.Formatter(log_format)
@@ -43,28 +44,7 @@ logger = gogo.Gogo(
     monolog=True).logger
 
 
-def main(args):
-    if '--debug' in args and args['--debug']:
-        logger.setLevel('DEBUG')
-    else:
-        logger.setLevel('INFO')
-
-    logger.info(app)
-
-    logger.debug('Setting MB useragent')
-    musicbrainzngs.set_useragent('martinevereleases', '1.0')
-
-    # load the template
-    logger.debug('Loading template file')
-
-    try:
-        with open(args["<template_file>"], "r") as template_file:
-            template = template_file.read()
-    except EnvironmentError:
-        logger.error('Cannot open template file')
-        logger.info('Shutting down')
-        return
-
+def load_ids(args):
     id_list = []
 
     # load the ID file
@@ -81,44 +61,126 @@ def main(args):
                 if not len(release_id) == 3:
                     logger.error("ID line {0} is malformed".format(id_full))
                     logger.info('Shutting down')
-                    return
+                    return False
 
                 id_list.append(release_id[0])
 
                 # fetch release
                 logger.debug("Fetching release {0}".format(release_id[0]))
                 if not fetch_release(release_id, args["--refresh"]):
-                    return
+                    return False
 
                 # fetch cover
                 logger.debug("Fetching cover art for {0}".format(release_id[0]))
                 if not fetch_cover(release_id, args["--refresh"]):
-                    return
+                    return False
 
     except EnvironmentError:
         logger.error('Cannot open ID file')
         logger.info('Shutting down')
-        return
+        return False
 
-    # now build the HTML
-    logger.debug("Building output HTML")
-    output_html = generate_html(id_list)
+    return id_list
 
-    # replace the output template
-    logger.debug("Substituting contents in template")
-    template = template.replace('[CONTENTS]', output_html)
+def cv_mode():
+    pass
 
-    # write to a file
-    logger.debug("Writing output")
-    try:
-        with open(args["<output_file>"], "w") as out_file:
-            out_file.write(template)
-    except EnvironmentError:
-        logger.error('Cannot open output file: {0}'.format(args["<output_file>"]))
-        logger.info('Shutting down')
-        return
 
-    logger.info("Done")
+def main(args):
+    if '--debug' in args and args['--debug']:
+        logger.setLevel('DEBUG')
+    else:
+        logger.setLevel('INFO')
+
+    logger.debug(app)
+
+    logger.debug('Setting MB useragent')
+    musicbrainzngs.set_useragent('martinevereleases', '1.1')
+
+    id_list = load_ids(args)
+
+    if 'cv' in args and args['cv']:
+        logger.debug('Working in CV mode (for https://github.com/MartinPaulEve/eprintsToCV)')
+
+        logger.debug("Building output HTML")
+        output_html = generate_cv_html(id_list)
+
+        print(output_html)
+    else:
+        # load the template
+        logger.debug('Loading template file')
+
+        try:
+            with open(args["<template_file>"], "r") as template_file:
+                template = template_file.read()
+        except EnvironmentError:
+            logger.error('Cannot open template file')
+            logger.info('Shutting down')
+            return
+
+        # now build the HTML
+        logger.debug("Building output HTML")
+        output_html = generate_html(id_list)
+
+        # replace the output template
+        logger.debug("Substituting contents in template")
+        template = template.replace('[CONTENTS]', output_html)
+
+        # write to a file
+        logger.debug("Writing output")
+        try:
+            with open(args["<output_file>"], "w") as out_file:
+                out_file.write(template)
+        except EnvironmentError:
+            logger.error('Cannot open output file: {0}'.format(args["<output_file>"]))
+            logger.info('Shutting down')
+            return
+
+        logger.info("Done")
+
+
+def generate_cv_html(id_list):
+    output_html = '<div class="section" id="music"><h2 class="sectionheader">MUSIC</h2>'
+
+    the_date = ''
+
+    template_new_date = '<p class="anitemnewdate genericitem"><span class="prefix bold">[[DATE]]</span><span class="bibitem">[[CONTENTS]]</span></p>'
+    template = '<p class="anitem genericitem"><span class="prefix bold">&nbsp;</span><span class="bibitem">[[CONTENTS]]</span></p>'
+
+    for release_id in id_list:
+        try:
+            with open("{0}.data".format(release_id), "r") as in_file:
+                fields = in_file.read().split("\n")
+
+                artist = fields[0]
+                release_name = fields[1]
+                url = fields[6]
+                year = fields[2].split('-')[0]
+                label = fields[3]
+
+                if fields[5] == 'remix':
+                    remix = ' (remix)'
+                else:
+                    remix = ''
+
+                contents = '<a href="https://{3}">{0} - {1}{2} ({4})</a>'.format(artist, release_name, remix, url,
+                                                                                 label)
+
+                if year != the_date:
+                    new_output_html = template_new_date.replace('[[DATE]]', year).replace('[[CONTENTS]]', contents)
+                    the_date = year
+                else:
+                    new_output_html = template.replace('[[CONTENTS]]', contents)
+
+                output_html += new_output_html
+        except EnvironmentError:
+            logger.error('Cannot write data file for {0}'.format(release_id))
+            logger.info('Shutting down')
+            return False
+
+    output_html += '</div>'
+
+    return output_html
 
 
 def generate_html(id_list):
