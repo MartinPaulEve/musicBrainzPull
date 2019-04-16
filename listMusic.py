@@ -1,8 +1,8 @@
 """Music release generator.
 
 Usage:
-  listMusic.py <id_file> <template_file> <output_file> [--debug] [--refresh]
-  listMusic.py cv <id_file> [--debug] [--refresh]
+  listMusic.py gen <id_file> <template_file> <output_file> [--debug] [--refresh]
+  listMusic.py cv <id_file> <output_file> [--debug] [--refresh]
   listMusic.py (-h | --help)
   listMusic.py --version
 
@@ -103,9 +103,7 @@ def main(args):
         logger.debug('Working in CV mode (for https://github.com/MartinPaulEve/eprintsToCV)')
 
         logger.debug("Building output HTML")
-        output_html = generate_cv_html(id_list)
-
-        print(output_html)
+        template = generate_cv_html(id_list)
     else:
         # load the template
         logger.debug('Loading template file')
@@ -126,17 +124,17 @@ def main(args):
         logger.debug("Substituting contents in template")
         template = template.replace('[CONTENTS]', output_html)
 
-        # write to a file
-        logger.debug("Writing output")
-        try:
-            with open(args["<output_file>"], "w") as out_file:
-                out_file.write(template)
-        except EnvironmentError:
-            logger.error('Cannot open output file: {0}'.format(args["<output_file>"]))
-            logger.info('Shutting down')
-            return
+    # write to a file
+    logger.debug("Writing output")
+    try:
+        with open(args["<output_file>"], "w") as out_file:
+            out_file.write(template)
+    except EnvironmentError:
+        logger.error('Cannot open output file: {0}'.format(args["<output_file>"]))
+        logger.info('Shutting down')
+        return
 
-        logger.info("Done")
+    logger.debug("Done")
 
 
 def generate_cv_html(id_list):
