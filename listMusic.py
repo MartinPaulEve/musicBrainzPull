@@ -99,6 +99,9 @@ def main(args):
 
     id_list = load_ids(args)
 
+    if not id_list:
+        return
+
     if 'cv' in args and args['cv']:
         logger.debug('Working in CV mode (for https://github.com/MartinPaulEve/eprintsToCV)')
 
