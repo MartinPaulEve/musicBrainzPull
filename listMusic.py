@@ -164,8 +164,8 @@ def generate_cv_html(id_list):
                 else:
                     remix = ''
 
-                contents = '<a href="https://{3}">{0} - {1}{2} ({4})</a>'.format(artist, release_name, remix, url,
-                                                                                 label)
+                contents = '<a href="https://{3}">{0} - {1}{2}{4}</a>'.format(artist, release_name, remix, url,
+                                                                              ' (' + label + ')' if label != '' else '')
 
                 if year != the_date:
                     new_output_html = template_new_date.replace('[[DATE]]', year).replace('[[CONTENTS]]', contents)
@@ -211,7 +211,8 @@ def generate_html(id_list):
                                                                                          release_name)
 
                 td_second = '<td style="padding-bottom: 15px;"><a href="https://{0}">{1} - {2}{5}</a>' \
-                            '<br/>({3}, {4})</td>'.format(url, artist, release_name, label, year, remix)
+                            '<br/>({3}{6}{4})</td>'.format(url, artist, release_name, label, year, remix,
+                                                            ', ' if label != "" else '')
 
                 new_output_html, first_td, second_td = process_arrays(first_td, second_td, td_first, td_second)
                 output_html += new_output_html
