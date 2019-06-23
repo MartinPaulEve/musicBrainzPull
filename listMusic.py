@@ -276,8 +276,13 @@ def fetch_release(release_id, refresh=False):
         try:
             with open("{0}.data".format(release_id[0]), "w") as out_file:
                 artist = release["artist-credit"][0]["artist"]
-                label = release["label-info-list"][0]["label"]["name"]
-                catno = release["label-info-list"][0]["catalog-number"]
+                try:
+                    label = release["label-info-list"][0]["label"]["name"]
+                    catno = release["label-info-list"][0]["catalog-number"]
+                except IndexError:
+                    label = ''
+                    catno = ''
+
                 out_file.writelines('\n'.join(
                     [artist["name"], release["title"], release["date"], label, catno, release_id[1], release_id[2]]))
         except EnvironmentError:
