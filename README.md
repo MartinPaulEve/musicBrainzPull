@@ -17,16 +17,22 @@ Options:
   --debug       Enable debug output.
   --refresh     Delete cached versions and do a hard refresh from MusicBrainz.
 
-Info:
+```
+## Setup
 
 The ID file specified should have a colon-delimited list of MusicBrainz release IDs, whether the release is a remix,
 and a URL.
 
 An example list might look like this:
+<pre>
 3ba21ea2-3ff4-41b6-991e-6bd4d26ab223:remix:musicbrainz.org/release/3ba21ea2-3ff4-41b6-991e-6bd4d26ab223
 d6c0d742-e4a3-4b1c-b9be-abf5d703adf9:original:www.junodownload.com/products/course-correction-ep/3775354-02/
+</pre>
 
-Note that no field should contain a colon (":").
+Note that no _field_ should contain a colon (":").
 
-The template file should have a block of text "[CONTENTS]" within a table.
-```
+The template file should have a block of text "[CONTENTS]" where you want the music cover art to appear.
+
+You will also need to include [the CSS](music.css) in your template.
+
+
